@@ -1,23 +1,62 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState } from "react";
+import "./App.css";
+import useFetch from "./useFetch";
+import Table from "./Table";
 
 function App() {
+  const { data, loading, error } = useFetch(
+    "https://jsonplaceholder.typicode.com/todos"
+  );
+
+  const [pageSize, setPageSize] = useState(10);
+  const [currPage, setCurrPage] = useState(1);
+
+  const totalNumofRecod = data.length;
+  const totalPage = Math.ceil(totalNumofRecod / pageSize);
+
+  const end = currPage * pageSize;
+  const start = end - pageSize;
+
+  const currData = data.slice(start, end);
+  if (loading) {
+    return <div>Loading</div>;
+  }
+  if (error) {
+    return <div>{error.message || "Somthing went wrong"}</div>;
+  }
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+      <div>Select recodes per page</div>
+      <select
+        value={pageSize}
+        onChange={(evt) => {
+          setPageSize(evt.target.value);
+          setCurrPage(1);
+        }}
+      >
+        <option value={10}>10</option>
+        <option value={20}>20</option>
+        <option value={30}>30</option>
+      </select>
+      <Table posts={currData} />
+
+      <div>
+        <button
+          onClick={() => setCurrPage(currPage - 1)}
+          disabled={currPage === 1}
         >
-          Learn React
-        </a>
-      </header>
+          Prev
+        </button>
+        <button
+          onClick={() => setCurrPage(currPage + 1)}
+          disabled={currPage === totalPage}
+        >
+          Next
+        </button>
+      </div>
+      <div>
+        {currPage}/{totalPage}
+      </div>
     </div>
   );
 }
